@@ -41,7 +41,7 @@ jobs:
 
       - name: Output instance IP
         run: |
-              $Instance_IP=$(terraform output -json instance_ip | jq -r .)
+              export Instance_IP=$(terraform output -json instance_ip | jq -r .)
               echo "Instance IP: $Instance_IP"
 
       - name: Set up SSH agent
