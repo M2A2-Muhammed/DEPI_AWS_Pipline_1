@@ -21,26 +21,23 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -out=tfplan
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+      - name: Terraform process
         env:
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ env.AWS_REGION }}
+          TF_VAR_aws_access_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
+          TF_VAR_aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_ssh_public_key: "${{ env.SSH_PUBLIC_KEY }}"
+        run: |
+            terraform init
+            terraform validate
+            terraform apply -auto-approve
 
       - name: Output instance IP
         run: |
