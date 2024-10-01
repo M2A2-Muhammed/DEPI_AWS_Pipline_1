@@ -52,8 +52,8 @@ jobs:
       - name: Add SSH public key to server
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan $Instance_IP >> ~/.ssh/known_hosts
-          echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@$Instance_IP "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+          ssh-keyscan $Instance_IP > ~/.ssh/known_hosts
+          echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@$Instance_IP  && cat > ~/.ssh/authorized_keys"
        
       - name: Verify connection
         run: |
