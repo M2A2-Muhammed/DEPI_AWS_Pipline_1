@@ -10,7 +10,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRV_KEY }}
-  SSH_PUBLIC_KEY: ${{ secrets.SSH_PUB_KEY }}
+  SSH_PUBLIC_KEY: ${{ vars.SSH_PUB_KEY }}
   AWS_REGION: ${{ vars.AWS_REGION }}
   SSH_KEY_NAME: "github-actions-key"
   Instance_IP: ""
