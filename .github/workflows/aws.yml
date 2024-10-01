@@ -42,7 +42,7 @@ jobs:
       - name: Output instance IP
         run: |
               export Instance_IP=$(terraform output -json instance_ip | jq -r .)
-              echo "Instance IP: ${{ env.Instance_IP }}"
+              echo "Instance IP: $Instance_IP"
 
       - name: Set up SSH agent
         run: |
@@ -52,9 +52,9 @@ jobs:
       - name: Add SSH public key to server
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ env.Instance_IP }} >> ~/.ssh/known_hosts
-          echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@${{ env.Instance_IP }} "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+          ssh-keyscan $Instance_IP >> ~/.ssh/known_hosts
+          echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@$Instance_IP "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
        
       - name: Verify connection
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ env.Instance_IP }} "echo 'Connection successful!'"
+          ssh -o StrictHostKeyChecking=no ubuntu@$Instance_IP "echo 'Connection successful!'"
