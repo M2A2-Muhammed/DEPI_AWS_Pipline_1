@@ -87,5 +87,5 @@ jobs:
 
       - name: Run Ansible Playbook
         run: |
-            ansible-playbook -i "${{ env.INSTANCE_IP }}," ec2_config.yml --user=ubuntu
+            ansible-playbook -i "${{ env.Instance_IP }}," ec2_config.yml --user=ubuntu
       
