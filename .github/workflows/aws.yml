@@ -57,12 +57,12 @@ jobs:
           eval "$(ssh-agent -s)"
           echo "${{ env.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
       
-      - name: Add SSH public key to server
-        run: |
-          mkdir -p ~/.ssh
-          echo "Instance IP: ${{ env.Instance_IP }}"
-          ssh-keyscan -p 22 ${{ env.Instance_IP }} > ~/.ssh/known_hosts
-          echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@${{ env.Instance_IP }}  && cat > ~/.ssh/authorized_keys"
+      # - name: Add SSH public key to server
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     echo "Instance IP: ${{ env.Instance_IP }}"
+      #     ssh-keyscan -p 22 ${{ env.Instance_IP }} > ~/.ssh/known_hosts
+      #     echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@${{ env.Instance_IP }}  && cat > ~/.ssh/authorized_keys"
        
       - name: Verify connection
         run: |
