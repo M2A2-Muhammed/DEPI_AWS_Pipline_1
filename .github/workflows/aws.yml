@@ -66,9 +66,8 @@ jobs:
               exit 1
           fi
 
-          rm tempkey-file
-
       - name: Cache Ansible
+        id: cache-ansible
         uses: actions/cache@v4
         with:
           path: ~/.ansible
@@ -77,6 +76,7 @@ jobs:
             ansible-${{ runner.os }}-
 
       - name: Install  Ansible
+        if: steps.cache-ansible.outputs.cache-hit != 'true'
         run: |
             sudo apt-get update
             sudo apt-get install -y ansible
@@ -86,5 +86,9 @@ jobs:
 
       - name: Run Ansible Playbook
         run: |
-            ansible-playbook -i "${{ env.Instance_IP }}," ec2_config.yml --user=ubuntu
+            ansible-playbook -i "${{ env.Instance_IP }}," ec2_config.yml --user=ubuntu --private-key=tempkey-file
+
+      - name: remove tempkey-file
+        run: |
+              rm tempkey-file
       
