@@ -3,12 +3,12 @@ variable "aws-region" {
   default = "us-east-1"
 }
 
-variable "aws_access_key_id" {
+variable "aws-access-key-id" {
   type      = string
   sensitive = true
 }
 
-variable "aws_secret_access_key" {
+variable "aws-secret-access-key" {
   type      = string
   sensitive = true
 }
