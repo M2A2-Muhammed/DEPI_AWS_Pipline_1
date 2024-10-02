@@ -51,7 +51,7 @@ jobs:
       - name: Apply Terraform configuration
         env:
             TF_VAR_ssh_public_key: "${{ env.SSH_PUBLIC_KEY }}"
-        run: terraform apply -auto-approve -var
+        run: terraform apply -auto-approve
 
       - name: Output instance IP
         run: |
