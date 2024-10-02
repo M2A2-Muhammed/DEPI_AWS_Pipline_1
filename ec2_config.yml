@@ -4,43 +4,29 @@
   become: yes
   gather_facts: false
 
-  tasks:
-    - name: Install Prometheus
-      prometheus.prometheus.prometheus:
-        state: present
-        config:
-          global:
-            scrape_interval: "15s"
-          scrape_configs:
-            - job_name: "prometheus"
-              static_configs:
-                - targets: ["localhost:9090"]
+  vars:
+    # Prometheus
+    # Service Management
+    prometheus_service_state: started
+    prometheus_service_enabled: true
 
-    - name: Ensure Prometheus is running
-      systemd:
-        name: prometheus
-        state: started
-        enabled: yes
+    # Configuration
+    prometheus_global_scrape_interval: 30s
+    prometheus_global_external_labels:
+      instance: "{{ ansible_hostname }}"
 
-    - name: Install Grafana
-      grafana.grafana.grafana:
-        state: present
-        url: http://localhost:3000
-        admin_user: admin
-        admin_password: admin
-        grafana:
-          server:
-            root_url: /
-            serve_from_sub_path: true
-        users:
-          - name: user
-            email: user@example.com
-            password: 123
-            org_role: Admin
+    # Grafana
+    # Service Management
+    grafana_service_state: started
+    grafana_service_enabled: true
 
-    - name: Add Prometheus as a data source in Grafana
-      grafana.grafana.grafana_datasource:
-        name: Prometheus
+    #Configuration
+    grafana_url: http://localhost:3000
+    grafana_admin_user: admin
+    grafana_admin_password: admin
+
+    grafana_datasources:
+      - name: Prometheus
         type: prometheus
         access: proxy
         url: http://localhost:9090
@@ -48,10 +34,6 @@
         basic_auth: false
         json_data:
           time_field: time
-        secure_json_data: {}
-
-    - name: Ensure Grafana is running
-      systemd:
-        name: grafana-server
-        state: started
-        enabled: yes
+  roles:
+    - role: prometheus.prometheus.prometheus
+    - role: grafana.grafana.grafana
