@@ -1,78 +1,57 @@
 ---
-- name: Install and configure Prometheus and Grafana
+- name: Setup Prometheus and Grafana
   hosts: all
   become: yes
   gather_facts: false
 
   tasks:
-    - name: Update apt package index
-      apt:
-        update_cache: yes
-
-    - name: Install necessary packages
-      apt:
-        name:
-          - prometheus
-          - grafana
+    - name: Install Prometheus
+      community.prometheus.prometheus:
         state: present
+        config:
+          global:
+            scrape_interval: "15s"
+          scrape_configs:
+            - job_name: "prometheus"
+              static_configs:
+                - targets: ["localhost:9090"]
 
-    - name: Start and enable Prometheus service
+    - name: Ensure Prometheus is running
       systemd:
         name: prometheus
         state: started
         enabled: yes
 
-    - name: Start and enable Grafana service
+    - name: Install Grafana
+      community.grafana.grafana:
+        state: present
+        url: http://localhost:3000
+        admin_user: admin
+        admin_password: admin
+        grafana:
+          server:
+            root_url: /
+            serve_from_sub_path: true
+        users:
+          - name: user
+            email: user@example.com
+            password: user_password
+            org_role: Admin
+
+    - name: Add Prometheus as a data source in Grafana
+      community.grafana.grafana_datasource:
+        name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://localhost:9090
+        is_default: true
+        basic_auth: false
+        json_data:
+          time_field: time
+        secure_json_data: {}
+
+    - name: Ensure Grafana is running
       systemd:
         name: grafana-server
         state: started
         enabled: yes
-
-    - name: Configure Prometheus (default config)
-      copy:
-        dest: /etc/prometheus/prometheus.yml
-        content: |
-          global:
-            scrape_interval: 15s
-
-          scrape_configs:
-            - job_name: 'prometheus'
-              static_configs:
-                - targets: ['localhost:9090']
-
-    - name: Restart Prometheus to apply configuration
-      systemd:
-        name: prometheus
-        state: restarted
-
-    - name: Configure Grafana to use Prometheus as a data source
-      grafana_datasource:
-        name: Prometheus
-        type: prometheus
-        url: http://localhost:9090
-        access: proxy
-        basic_auth: false
-        json_data:
-          http_method: POST
-        admin: true
-        state: present
-
-    - name: Wait for Grafana to be fully up
-      wait_for:
-        port: 3000
-        delay: 10
-
-    - name: Create Grafana admin user (optional)
-      community.grafana.grafana_user:
-        name: admin
-        password: admin
-        email: admin@example.com
-        role: Admin
-        state: present
-        permissions: admin
-
-    - name: Ensure Grafana user is enabled
-      community.grafana.grafana_user:
-        name: admin
-        state: present
-        enabled: true

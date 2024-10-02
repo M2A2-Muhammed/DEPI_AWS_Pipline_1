@@ -80,9 +80,16 @@ jobs:
         run: |
             sudo apt-get update
             sudo apt-get install -y ansible
+            ansible-galaxy collection install grafana.grafana
 
       - name: Verify Ansible Installation
         run: ansible --version
+
+      - name: Install Ansible Collection [Prometheus] 
+        run: ansible-galaxy collection install prometheus.prometheus
+  
+      - name: Install Ansible Collection [Grafana]
+        run: ansible-galaxy collection install grafana.grafana
 
       - name: Run Ansible Playbook
         run: |
