@@ -21,28 +21,39 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Terraform
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          region: ${{ env.AWS_REGION }} 
+          ssh_public_key: ${{ env.SSH_PUBLIC_KEY }}
+
+      - name: Cache Terraform
+        id: cache-terraform
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform
+          key: terraform-${{ hashFiles('terraform.tf*') }}
+
+      - name: Install Terraform
+        if: steps.cache-terraform.outputs.cache-hit != 'true'
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      - name: Terraform process
-        env:
-          TF_VAR_aws_access_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
-          TF_VAR_aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_ssh_public_key: "${{ env.SSH_PUBLIC_KEY }}"
-        run: |
-            terraform init
-            terraform validate
-            terraform apply -auto-approve
+      - name: Initialize Terraform
+        run: terraform init
 
-      # - name: Output instance IP
-      #   run: |
-      #         echo "Instance_IP=$(terraform output -json instance_ip | jq -r .)" >> $GITHUB_ENV
-      #         echo "Instance IP: ${{ env.Instance_IP }}"
+      - name: Apply Terraform configuration
+        run: terraform apply -auto-approve
+
+      - name: Output instance IP
+        run: |
+              echo "Instance_IP=$(terraform output -json instance_ip | jq -r .)" >> $GITHUB_ENV
+              echo "Instance IP: ${{ env.Instance_IP }}"
 
       # - name: Set up SSH agent
       #   run: |

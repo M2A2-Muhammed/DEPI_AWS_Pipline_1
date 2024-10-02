@@ -19,75 +19,63 @@ provider "aws" {
   secret_key = var.aws_secret_access_key
 }
 
-# resource "aws_vpc" "main" {
-#   cidr_block = "10.0.0.0/16"
+# Create a key pair
+resource "aws_key_pair" "web_key_pair" {
+  key_name   = var.key_pair_name
+  public_key = var.ssh_public_key # Replace with the path to your public key file
+}
 
-#   tags = {
-#     Name = "web_vpc"
-#   }
-# }
+resource "aws_security_group" "web_sg" {
+  name        = "web_sg"
+  description = "Allow SSH and HTTP traffic"
 
-# resource "aws_subnet" "main" {
-#   vpc_id                  = aws_vpc.main.id
-#   cidr_block              = "10.0.1.0/24"
-#   availability_zone       = "us-east-1a" # Adjust as necessary
-#   map_public_ip_on_launch = true
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Allow SSH from anywhere (consider restricting this for production)
+  }
 
-#   tags = {
-#     Name = "web_subnet"
-#   }
-# }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Allow HTTP from anywhere
+  }
 
-# resource "aws_security_group" "web_sg" {
-#   name        = "web_sg"
-#   vpc_id      = aws_vpc.main.id
-#   description = "Allow SSH and HTTP traffic"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # Allow all outbound traffic
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 
-#   ingress {
-#     from_port   = 22
-#     to_port     = 22
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"] # Allow SSH from anywhere (consider restricting this for production)
-#   }
+resource "aws_instance" "web-server" {
+  ami                    = var.ami
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.web_key_pair.key_name
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
 
-#   ingress {
-#     from_port   = 80
-#     to_port     = 80
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"] # Allow HTTP from anywhere
-#   }
+  # User data script to install Apache
+  user_data = <<-EOF
+                  #!/bin/bash
 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1" # Allow all outbound traffic
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# }
+                  # Install SSH and Apache
+                  sudo apt update
+                  sudo apt install ssh apache2 -y
 
-# resource "aws_instance" "web" {
-#   ami           = var.ami
-#   instance_type = var.instance_type
-#   subnet_id     = aws_subnet.main.id
-#   # Security group allowing SSH and HTTP access
-#   vpc_security_group_ids = [aws_security_group.web_sg.id]
+                  # Start services
+                  sudo systemctl start sshd apache2
+              EOF
 
-#   # User data script to install Apache
-#   user_data = <<-EOF
-#               #!/bin/bash
-#               apt-get update
-#               apt-get install -y apache2
-#               systemctl start apache2
-#               systemctl enable apache2
-#               EOF
-
-#   tags = {
-#     Name = "Web-Server"
-#   }
-# }
+  tags = {
+    Name = "Web-Server"
+  }
+}
 
 
 
-# output "instance_ip" {
-#   value = aws_instance.web.public_ip
-# }
+output "instance_ip" {
+  value = aws_instance.web-server.public_ip
+}

@@ -28,7 +28,11 @@ variable "ami" {
   default = "ami-005fc0f236362e99f"
 }
 
-variable "ssh_public_key" {
+variable "key_pair_name" {
   type    = string
-  default = "~/.ssh/github-actions-key.pub"
+  default = "web-key-pair"
+}
+
+variable "ssh_public_key" {
+  type = string
 }
