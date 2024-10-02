@@ -1,79 +1,76 @@
 ---
-- name: Install Prometheus and Grafana
+- name: Install and configure Prometheus and Grafana
   hosts: all
   become: yes
   gather_facts: false
 
   tasks:
-    - name: Check network connectivity
-      uri:
-        url: https://www.google.com
-        return_content: no
-      register: connectivity
-      ignore_errors: yes
-
-    - name: Fail if unable to connect to network
-      fail:
-        msg: "Cannot reach the Ubuntu repository. Check network settings."
-      when: connectivity is failed or connectivity.status != 200
-
-    - name: Update the package manager
+    - name: Update apt package index
       apt:
         update_cache: yes
-        upgrade: dist
 
-    - name: Set up Docker
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y docker.io
-        sudo systemctl start docker
-        sudo systemctl enable docker
+    - name: Install necessary packages
+      apt:
+        name:
+          - prometheus
+          - grafana
+        state: present
 
-    - name: Run Prometheus
-      run: |
-        docker run -d --name prometheus \
-          -p 9090:9090 \
-          -v ${{ github.workspace }}/prometheus.yml:/etc/prometheus/prometheus.yml \
-          prom/prometheus
+    - name: Start and enable Prometheus service
+      systemd:
+        name: prometheus
+        state: started
+        enabled: yes
 
-    - name: Run Grafana
-      run: |
-        docker run -d --name grafana \
-          -p 3000:3000 \
-          -e "GF_SECURITY_ADMIN_PASSWORD=admin" \
-          grafana/grafana
+    - name: Start and enable Grafana service
+      systemd:
+        name: grafana-server
+        state: started
+        enabled: yes
 
-    - name: Wait for Grafana to start
-      run: |
-        sleep 30  # Wait for Grafana to be fully up
+    - name: Configure Prometheus (default config)
+      copy:
+        dest: /etc/prometheus/prometheus.yml
+        content: |
+          global:
+            scrape_interval: 15s
 
-    - name: Configure Grafana Data Source
-      run: |
-        curl -X POST -H "Content-Type: application/json" \
-          -d '{
-                "name":"Prometheus",
-                "type":"prometheus",
-                "url":"http://localhost:9090",
-                "access":"proxy",
-                "basicAuth":false
-              }' \
-          http://admin:admin@localhost:3000/api/datasources
+          scrape_configs:
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
 
-    - name: Verify Data Source
-      run: |
-        curl -X GET -H "Content-Type: application/json" \
-          http://admin:admin@localhost:3000/api/datasources
+    - name: Restart Prometheus to apply configuration
+      systemd:
+        name: prometheus
+        state: restarted
 
-    - name: Open firewall for Prometheus and Grafana
-      block:
-        - name: Allow Prometheus port
-          ufw:
-            rule: allow
-            port: "9090"
-            state: enabled
+    - name: Configure Grafana to use Prometheus as a data source
+      grafana_datasource:
+        name: Prometheus
+        type: prometheus
+        url: http://localhost:9090
+        access: proxy
+        basic_auth: false
+        json_data:
+          http_method: POST
+        admin: true
+        state: present
 
-        - name: Allow Grafana port
-          ufw:
-            rule: allow
-            port: "3000"
-            state: enabled
+    - name: Wait for Grafana to be fully up
+      wait_for:
+        port: 3000
+        delay: 10
+
+    - name: Create Grafana admin user (optional)
+      grafana_user:
+        name: admin
+        password: admin
+        email: admin@example.com
+        role: Admin
+        state: present
+
+    - name: Ensure Grafana user is enabled
+      grafana_user:
+        name: admin
+        state: present
