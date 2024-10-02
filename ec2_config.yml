@@ -1,0 +1,79 @@
+---
+- name: Install Prometheus and Grafana
+  hosts: all
+  become: yes
+  gather_facts: false
+
+  tasks:
+    - name: Check network connectivity
+      uri:
+        url: https://www.google.com
+        return_content: no
+      register: connectivity
+      ignore_errors: yes
+
+    - name: Fail if unable to connect to network
+      fail:
+        msg: "Cannot reach the Ubuntu repository. Check network settings."
+      when: connectivity is failed or connectivity.status != 200
+
+    - name: Update the package manager
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Set up Docker
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
+
+    - name: Run Prometheus
+      run: |
+        docker run -d --name prometheus \
+          -p 9090:9090 \
+          -v ${{ github.workspace }}/prometheus.yml:/etc/prometheus/prometheus.yml \
+          prom/prometheus
+
+    - name: Run Grafana
+      run: |
+        docker run -d --name grafana \
+          -p 3000:3000 \
+          -e "GF_SECURITY_ADMIN_PASSWORD=admin" \
+          grafana/grafana
+
+    - name: Wait for Grafana to start
+      run: |
+        sleep 30  # Wait for Grafana to be fully up
+
+    - name: Configure Grafana Data Source
+      run: |
+        curl -X POST -H "Content-Type: application/json" \
+          -d '{
+                "name":"Prometheus",
+                "type":"prometheus",
+                "url":"http://localhost:9090",
+                "access":"proxy",
+                "basicAuth":false
+              }' \
+          http://admin:admin@localhost:3000/api/datasources
+
+    - name: Verify Data Source
+      run: |
+        curl -X GET -H "Content-Type: application/json" \
+          http://admin:admin@localhost:3000/api/datasources
+
+    - name: Open firewall for Prometheus and Grafana
+      block:
+        - name: Allow Prometheus port
+          ufw:
+            rule: allow
+            port: "9090"
+            state: enabled
+
+        - name: Allow Grafana port
+          ufw:
+            rule: allow
+            port: "3000"
+            state: enabled

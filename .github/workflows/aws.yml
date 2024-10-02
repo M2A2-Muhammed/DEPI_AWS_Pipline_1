@@ -85,4 +85,8 @@ jobs:
       - name: Verify Ansible Installation
         run: ansible --version
 
+      - name: Run Ansible Playbook
+        run: |
+            cd ./ansible
+            ansible-playbook -i "${{ env.INSTANCE_IP }}," main.yml --user=ubuntu
       
