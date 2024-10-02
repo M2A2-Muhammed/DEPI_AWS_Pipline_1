@@ -6,7 +6,7 @@
 
   tasks:
     - name: Install Prometheus
-      community.prometheus.prometheus:
+      prometheus.prometheus.prometheus:
         state: present
         config:
           global:
@@ -23,7 +23,7 @@
         enabled: yes
 
     - name: Install Grafana
-      community.grafana.grafana:
+      grafana.grafana.grafana:
         state: present
         url: http://localhost:3000
         admin_user: admin
@@ -35,11 +35,11 @@
         users:
           - name: user
             email: user@example.com
-            password: user_password
+            password: 123
             org_role: Admin
 
     - name: Add Prometheus as a data source in Grafana
-      community.grafana.grafana_datasource:
+      grafana.grafana.grafana_datasource:
         name: Prometheus
         type: prometheus
         access: proxy
