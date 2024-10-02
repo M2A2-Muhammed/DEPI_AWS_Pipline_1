@@ -61,7 +61,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "Instance IP: ${{ env.Instance_IP }}"
-          ssh-keyscan ${{ env.Instance_IP }} > ~/.ssh/known_hosts
+          ssh-keyscan -p 22 ${{ env.Instance_IP }} > ~/.ssh/known_hosts
           echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@${{ env.Instance_IP }}  && cat > ~/.ssh/authorized_keys"
        
       - name: Verify connection
