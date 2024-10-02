@@ -68,14 +68,13 @@ jobs:
 
           rm tempkey-file
 
-      - name: Set up APT caching
-        if: steps.verify-conn.outcome  == 'success'
+      - name: Cache Ansible
         uses: actions/cache@v4
         with:
-          path: /var/cache/apt
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/apt-cache.txt') }}
+          path: ~/.ansible
+          key: ansible-${{ runner.os }}-${{ hashFiles('ansible.cfg') }}
           restore-keys: |
-            ${{ runner.os }}-apt-
+            ansible-${{ runner.os }}-
 
       - name: Install  Ansible
         run: |
