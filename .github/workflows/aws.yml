@@ -52,27 +52,37 @@ jobs:
               echo "Instance_IP=$(terraform output -json instance_ip | jq -r .)" >> $GITHUB_ENV
               echo "Instance IP: ${{ env.Instance_IP }}"
 
-      # - name: Set up SSH agent
-      #   run: |
-      #     eval "$(ssh-agent -s)"
-      #     echo "${{ env.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
-      
-      # - name: Add SSH public key to server
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     echo "Instance IP: ${{ env.Instance_IP }}"
-      #     ssh-keyscan -p 22 ${{ env.Instance_IP }} > ~/.ssh/known_hosts
-      #     echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@${{ env.Instance_IP }}  && cat > ~/.ssh/authorized_keys"
-      
       - name: Verify connection
+        id: verify-conn
         run: |
           echo "${{ env.SSH_PRIVATE_KEY }}" > tempkey-file
           chmod 600 tempkey-file
 
           if ssh -o StrictHostKeyChecking=no ubuntu@"${{ env.Instance_IP }}" -i tempkey-file; then
               echo "Connection successful!"
+              exit 0
           else
               echo "Connection failed!"
+              exit 1
           fi
 
           rm tempkey-file
+
+      - name: Set up APT caching
+        if: steps.verify-conn.outcome  == 'success'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/apt-cache.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+
+      - name: Install  Ansible
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y ansible
+
+      - name: Verify Ansible Installation
+        run: ansible --version
+
+      
