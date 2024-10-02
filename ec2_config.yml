@@ -63,14 +63,16 @@
         delay: 10
 
     - name: Create Grafana admin user (optional)
-      grafana_user:
+      community.grafana.grafana_user:
         name: admin
         password: admin
         email: admin@example.com
         role: Admin
         state: present
+        permissions: admin
 
     - name: Ensure Grafana user is enabled
-      grafana_user:
+      community.grafana.grafana_user:
         name: admin
         state: present
+        enabled: true
