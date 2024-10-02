@@ -66,4 +66,4 @@ jobs:
        
       - name: Verify connection
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ env.Instance_IP }} "echo 'Connection successful!'"
+          ssh -i <(echo "${{ env.SSH_PRIVATE_KEY }}") -o StrictHostKeyChecking=no ubuntu@${{ env.Instance_IP }} "echo 'Connection successful!'"
