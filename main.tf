@@ -21,8 +21,8 @@ provider "aws" {
 
 # Create a key pair
 resource "aws_key_pair" "web_key_pair" {
-  key_name   = var.key_pair_name
-  public_key = var.ssh_public_key # Replace with the path to your public key file
+  key_name   = var.key-pair-name
+  public_key = var.ssh-public-key # Replace with the path to your public key file
 }
 
 resource "aws_security_group" "web_sg" {
@@ -53,7 +53,7 @@ resource "aws_security_group" "web_sg" {
 
 resource "aws_instance" "web-server" {
   ami                    = var.ami
-  instance_type          = var.instance_type
+  instance_type          = var.instance-type
   key_name               = aws_key_pair.web_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 

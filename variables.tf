@@ -13,12 +13,12 @@ variable "aws-secret-access-key" {
   sensitive = true
 }
 
-variable "availability_zone" {
+variable "availability-zone" {
   type    = string
   default = "us-east-1a"
 }
 
-variable "instance_type" {
+variable "instance-type" {
   type    = string
   default = "t2.micro"
 }
@@ -28,11 +28,11 @@ variable "ami" {
   default = "ami-005fc0f236362e99f"
 }
 
-variable "key_pair_name" {
+variable "key-pair-name" {
   type    = string
   default = "web-key-pair"
 }
 
-variable "ssh_public_key" {
+variable "ssh-public-key" {
   type = string
 }
