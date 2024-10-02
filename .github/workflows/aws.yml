@@ -47,15 +47,15 @@ jobs:
              terraform validate
              terraform apply -auto-approve
 
-      - name: Output instance IP
-        run: |
-              echo "Instance_IP=$(terraform output -json instance_ip | jq -r .)" >> $GITHUB_ENV
-              echo "Instance IP: ${{ env.Instance_IP }}"
+      # - name: Output instance IP
+      #   run: |
+      #         echo "Instance_IP=$(terraform output -json instance_ip | jq -r .)" >> $GITHUB_ENV
+      #         echo "Instance IP: ${{ env.Instance_IP }}"
 
-      - name: Set up SSH agent
-        run: |
-          eval "$(ssh-agent -s)"
-          echo "${{ env.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
+      # - name: Set up SSH agent
+      #   run: |
+      #     eval "$(ssh-agent -s)"
+      #     echo "${{ env.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
       
       # - name: Add SSH public key to server
       #   run: |
@@ -64,6 +64,6 @@ jobs:
       #     ssh-keyscan -p 22 ${{ env.Instance_IP }} > ~/.ssh/known_hosts
       #     echo "${{ env.SSH_PUBLIC_KEY }}" | ssh ubuntu@${{ env.Instance_IP }}  && cat > ~/.ssh/authorized_keys"
        
-      - name: Verify connection
-        run: |
-          ssh -i <(echo "${{ env.SSH_PRIVATE_KEY }}") -o StrictHostKeyChecking=no ubuntu@${{ env.Instance_IP }} "echo 'Connection successful!'"
+      # - name: Verify connection
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ubuntu@${{ env.Instance_IP }} "echo 'Connection successful!'"
