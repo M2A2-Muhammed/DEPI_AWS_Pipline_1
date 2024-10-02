@@ -68,7 +68,7 @@ jobs:
         run: |
           tempkey-file=$(${{ env.SSH_PRIVATE_KEY }})
           
-          if ssh -o StrictHostKeyChecking=no ubuntu@"${{ env.Instance_IP }}" -i tempkey-file; then
+          if ssh -o StrictHostKeyChecking=no ubuntu@"${{ env.Instance_IP }}" -i $tempkey-file; then
               echo "Connection successful!"
           else
               echo "Connection failed!"
