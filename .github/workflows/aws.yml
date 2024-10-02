@@ -28,8 +28,7 @@ jobs:
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          region: ${{ env.AWS_REGION }} 
-          ssh_public_key: ${{ env.SSH_PUBLIC_KEY }}
+          aws_region: ${{ env.AWS_REGION }} 
 
       - name: Cache Terraform
         id: cache-terraform
@@ -45,10 +44,14 @@ jobs:
           terraform_wrapper: false
 
       - name: Initialize Terraform
-        run: terraform init
+        run: |
+              terraform init
+              terraform validate
 
       - name: Apply Terraform configuration
-        run: terraform apply -auto-approve
+        env:
+            TF_VAR_ssh_public_key: "${{ env.SSH_PUBLIC_KEY }}"
+        run: terraform apply -auto-approve -var
 
       - name: Output instance IP
         run: |
