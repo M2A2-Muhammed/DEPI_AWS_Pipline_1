@@ -66,10 +66,12 @@ jobs:
       
       - name: Verify connection
         run: |
-          tempkey-file=$(${{ env.SSH_PRIVATE_KEY }})
+          echo "${{ env.SSH_PRIVATE_KEY }}" > tempkey-file
           
-          if ssh -o StrictHostKeyChecking=no ubuntu@"${{ env.Instance_IP }}" -i $tempkey-file; then
+          if ssh -o StrictHostKeyChecking=no ubuntu@"${{ env.Instance_IP }}" -i tempkey-file; then
               echo "Connection successful!"
           else
               echo "Connection failed!"
           fi
+
+          rm tempkey-file
