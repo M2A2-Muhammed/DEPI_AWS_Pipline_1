@@ -67,7 +67,8 @@ jobs:
       - name: Verify connection
         run: |
           echo "${{ env.SSH_PRIVATE_KEY }}" > tempkey-file
-          
+          chmod 644 tempkey-file
+
           if ssh -o StrictHostKeyChecking=no ubuntu@"${{ env.Instance_IP }}" -i tempkey-file; then
               echo "Connection successful!"
           else
